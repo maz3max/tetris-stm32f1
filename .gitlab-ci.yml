@@ -6,8 +6,10 @@ variables:
 before_script:
   - apt-get update -qq >/dev/null
   - apt-get install -y -qq cmake gcc-arm-none-eabi python >/dev/null
+  - source .stlink.bash >/dev/null
   - cmake --version
   - arm-none-eabi-gcc --version
+  - st-flash --version
 
 build:
   stage: build
@@ -15,5 +17,4 @@ build:
     - mkdir build
     - cd build
     - cmake ..
-    - make
-
+    - make -j4
