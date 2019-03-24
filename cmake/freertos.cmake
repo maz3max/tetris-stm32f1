@@ -16,9 +16,9 @@ include_directories(
 
 # Build objects
 add_library(
-  tasks
+  heap
   OBJECT
-  ${FREERTOS_DIR}/tasks.c
+  ${FREERTOS_DIR}/portable/MemMang/heap_${FREERTOS_MEMORY_MANAGMENT}.c
 )
 add_library(
   port
@@ -26,21 +26,51 @@ add_library(
   ${FREERTOS_DIR}/portable/${FREERTOS_PORTABLE}/port.c
 )
 add_library(
+  tasks
+  OBJECT
+  ${FREERTOS_DIR}/tasks.c
+)
+add_library(
   list
   OBJECT
   ${FREERTOS_DIR}/list.c
 )
 add_library(
-  heap
+  queue
   OBJECT
-  ${FREERTOS_DIR}/portable/MemMang/heap_${FREERTOS_MEMORY_MANAGMENT}.c
+  ${FREERTOS_DIR}/queue.c
+)
+add_library(
+  timers
+  OBJECT
+  ${FREERTOS_DIR}/timers.c
+)
+add_library(
+  stream_buffer
+  OBJECT
+  ${FREERTOS_DIR}/stream_buffer.c
+)
+add_library(
+  event_groups
+  OBJECT
+  ${FREERTOS_DIR}/event_groups.c
+)
+add_library(
+  croutine
+  OBJECT
+  ${FREERTOS_DIR}/croutine.c
 )
 
 # Used in top CMakeLists.txt
 set(
   FREERTOS_OBJECTS
-  $<TARGET_OBJECTS:tasks>
-  $<TARGET_OBJECTS:port>
-  $<TARGET_OBJECTS:list>
   $<TARGET_OBJECTS:heap>
+  $<TARGET_OBJECTS:port>
+  $<TARGET_OBJECTS:tasks>
+  $<TARGET_OBJECTS:list>
+  $<TARGET_OBJECTS:queue>
+  $<TARGET_OBJECTS:timers>
+  $<TARGET_OBJECTS:stream_buffer>
+  $<TARGET_OBJECTS:event_groups>
+  $<TARGET_OBJECTS:croutine>
 )
