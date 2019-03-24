@@ -16,7 +16,7 @@ add_executable(
 )
 add_dependencies(
   blink
-  ${LIBOPENCM3_BLUEPILL_DEPENDENCIES}
+  libopencm3
 )
 target_link_libraries(
   blink
