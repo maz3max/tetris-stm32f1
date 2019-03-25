@@ -5,6 +5,10 @@ add_library(
   OBJECT
   freertos_libopencm3/glue.c
 )
+add_dependencies(
+  freertos_libopencm3_glue
+  libopencm3
+)
 
 # Used in top CMakeLists.txt
 set(
