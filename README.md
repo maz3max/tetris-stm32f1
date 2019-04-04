@@ -21,7 +21,8 @@ cmake ../src
 make -j4
 ```
 
-To upload, make sure the Blue-Pill / ST-Link are connected and use:
+To upload, make sure the Blue-Pill / ST-Link are connected and use one of the two commands:
 ```bash
-make -j4 blink.bin_upload
+make -j4 blink_c.bin_upload
+make -j4 blink_cpp.bin_upload
 ```
