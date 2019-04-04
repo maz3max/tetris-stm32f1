@@ -23,7 +23,7 @@ int main(void)
   gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
   gpio_set(GPIOC, GPIO13); // Turn off
 
-  int *test_var = malloc(sizeof(int));
+  int *test_var = new(int);
   *test_var = 5;
 
   xTaskCreate(task_blink, "blink", 100, NULL, configMAX_PRIORITIES - 1, NULL);
