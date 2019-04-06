@@ -6,8 +6,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 
-static void
-task_blink(void *args __attribute((unused)))
+void task_blink(void *args __attribute__((unused)))
 {
   while (1)
   {
