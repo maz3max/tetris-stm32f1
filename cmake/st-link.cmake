@@ -5,7 +5,7 @@ find_program(ST-FLASH st-flash)
 # The target must be called explicitly
 function(add_stlink_upload_target bin)
   if (NOT ST-FLASH)
-    message(FATAL_ERROR "st-flash not found.")
+    # message(FATAL_ERROR "st-flash not found.")
   endif()
   add_custom_target(${bin}_upload ALL st-flash write ${bin} 0x8000000 DEPENDS ${bin})
   set_target_properties(${bin}_upload PROPERTIES EXCLUDE_FROM_ALL TRUE)

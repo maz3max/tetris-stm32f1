@@ -4,7 +4,7 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/freertos/")
 endif()
 
 set(FREERTOS_DIR ${CMAKE_SOURCE_DIR}/freertos)
-set(FREERTOS_PORTABLE "GCC/ARM_CM3" CACHE STRING "Portable definitions")
+set(FREERTOS_PORTABLE "GCC/ARM_CM0" CACHE STRING "Portable definitions")
 set(FREERTOS_MEMORY_MANAGMENT 4 CACHE STRING "https://www.freertos.org/a00111.html")
 set_property(CACHE FREERTOS_MEMORY_MANAGMENT PROPERTY STRINGS 1 2 3 4 5)
 
