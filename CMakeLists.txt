@@ -4,26 +4,28 @@ project(libopencm3_freertos_bluepill_blink)
 include(cmake/tetris-board.cmake)
 include(cmake/libopencm3.cmake)
 include(cmake/freertos.cmake)
+include(cmake/freertos-libopencm3-glue.cmake)
 include(cmake/st-link.cmake)
 
 # Targets to build
 
 ## Tetris (in C language)
 add_executable(
-  tetris
+  tetris.elf
   tetris.c
   ${FREERTOS_OBJECTS}
+  ${FREERTOS_LIBOPENCM3_GLUE_OBJECTS}
 )
 add_dependencies(
-  tetris
+  tetris.elf
   libopencm3
 )
 target_link_libraries(
-  tetris
+  tetris.elf
   ${LIBOPENCM3_TETRISBOARD_LIBRARIES}
 )
 add_bin_from_elf(
   tetris.bin
-  tetris
+  tetris.elf
 )
 add_stlink_upload_target(tetris.bin)
