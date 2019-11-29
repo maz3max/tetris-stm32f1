@@ -22,6 +22,7 @@ void task_blink(void *args __attribute__((unused)))
 int main(void)
 {
 	rcc_clock_setup_in_hsi_out_48mhz();
+	systick_interrupt_enable();
 
 	rcc_periph_clock_enable(RCC_GPIOA);
 	gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED);
