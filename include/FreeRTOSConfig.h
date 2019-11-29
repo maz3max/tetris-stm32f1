@@ -71,5 +71,10 @@ header file. */
 #define configASSERT( x ) if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
 /* USER CODE END 1 */
 
+//map FreeRTOS function names to their libopencm3 equivalents
+#define vPortSVCHandler sv_call_handler
+#define xPortPendSVHandler pend_sv_handler
+#define xPortSysTickHandler sys_tick_handler
+
 #endif /* FREERTOS_CONFIG_H */
 

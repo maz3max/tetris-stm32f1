@@ -3,7 +3,6 @@ set(CMAKE_TOOLCHAIN_FILE cmake/toolchain-arm-none-eabi.cmake)
 project(libopencm3_freertos_bluepill_blink)
 include(cmake/libopencm3.cmake)
 include(cmake/freertos.cmake)
-include(cmake/freertos-libopencm3-glue.cmake)
 include(cmake/tetris-board.cmake)
 include(cmake/st-link.cmake)
 
@@ -16,7 +15,6 @@ add_executable(
   tetris.elf
   src/tetris.c
   ${FREERTOS_OBJECTS}
-  ${FREERTOS_LIBOPENCM3_GLUE_OBJECTS}
 )
 add_dependencies(
   tetris.elf
