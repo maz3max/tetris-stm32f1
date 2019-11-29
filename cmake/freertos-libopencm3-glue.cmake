@@ -3,7 +3,7 @@
 add_library(
   freertos_libopencm3_glue
   OBJECT
-  freertos_libopencm3/glue.c
+  thirdparty/freertos_libopencm3/glue.c
 )
 add_dependencies(
   freertos_libopencm3_glue

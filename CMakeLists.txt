@@ -1,18 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 set(CMAKE_TOOLCHAIN_FILE cmake/toolchain-arm-none-eabi.cmake)
 project(libopencm3_freertos_bluepill_blink)
-include(cmake/tetris-board.cmake)
 include(cmake/libopencm3.cmake)
 include(cmake/freertos.cmake)
 include(cmake/freertos-libopencm3-glue.cmake)
+include(cmake/tetris-board.cmake)
 include(cmake/st-link.cmake)
 
 # Targets to build
 
+include_directories("${CMAKE_SOURCE_DIR}/include")
+
 ## Tetris (in C language)
 add_executable(
   tetris.elf
-  tetris.c
+  src/tetris.c
   ${FREERTOS_OBJECTS}
   ${FREERTOS_LIBOPENCM3_GLUE_OBJECTS}
 )
