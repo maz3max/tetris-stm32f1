@@ -6,6 +6,10 @@ include(cmake/freertos.cmake)
 include(cmake/tetris-board.cmake)
 include(cmake/st-link.cmake)
 
+enable_language(ASM)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Targets to build
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
@@ -14,7 +18,6 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 add_executable(
   tetris.elf
   src/tetris.c
-  ${FREERTOS_OBJECTS}
 )
 add_dependencies(
   tetris.elf
@@ -23,6 +26,7 @@ add_dependencies(
 target_link_libraries(
   tetris.elf
   ${LIBOPENCM3_TETRISBOARD_LIBRARIES}
+  freertos
 )
 add_bin_from_elf(
   tetris.bin

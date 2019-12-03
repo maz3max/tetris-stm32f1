@@ -32,15 +32,24 @@ if (NOT ARM_AR)
 endif()
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+set(CMAKE_C_COMPILER ${ARM_CC} CACHE FILEPATH "C compiler")
+set(CMAKE_CXX_COMPILER ${ARM_CXX} CACHE FILEPATH "C++ compiler")
+set(CMAKE_ASM_COMPILER ${ARM_CC} CACHE FILEPATH "ASM compiler")
 
-# Don't look for system programs, includes, libraries
-# and packages because we are cross-compiling
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE NEVER)
+# Disable compiler checks.
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
+# Add target system root to cmake find path.
+get_filename_component(ARM_CC_DIR "${ARM_CC}" DIRECTORY)
+get_filename_component(CMAKE_FIND_ROOT_PATH "${ARM_CC_DIR}" DIRECTORY)
+
+# message("CMAKE_FIND_ROOT_PATH: ${CMAKE_FIND_ROOT_PATH}")
+set(TOOLCHAIN_PREFIX "${ARM_CC_DIR}/arm-none-eabi-")
+
+# Look for includes and libraries only in the target system prefix.
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 
 # Function to generate bin files from elf files
 function(add_bin_from_elf bin elf)

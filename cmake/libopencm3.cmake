@@ -6,6 +6,6 @@ if (NOT EXISTS "${LIBOPENCM3_DIR}/Makefile")
 endif()
 
 # Add a custom target to compile libopencm3
-add_custom_target(libopencm3 make -j4 WORKING_DIRECTORY ${LIBOPENCM3_DIR})
+add_custom_target(libopencm3 PREFIX=${TOOLCHAIN_PREFIX} make -j4 WORKING_DIRECTORY ${LIBOPENCM3_DIR})
 include_directories(${LIBOPENCM3_DIR}/include)
 link_directories(${LIBOPENCM3_DIR}/lib)
