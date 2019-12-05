@@ -5,7 +5,7 @@
 #define configUSE_PREEMPTION                    1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_TICKLESS_IDLE                 0
-#define configCPU_CLOCK_HZ                      48000000
+#define configCPU_CLOCK_HZ                      64000000
 #define configTICK_RATE_HZ                      250
 #define configMAX_PRIORITIES                    5
 #define configMINIMAL_STACK_SIZE                128
@@ -55,9 +55,9 @@
 #define configTIMER_TASK_STACK_DEPTH            configMINIMAL_STACK_SIZE
 
 /* Interrupt nesting behaviour configuration. */
-#define configPRIO_BITS				2
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY     2
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   3
+#define configPRIO_BITS				4
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY     10
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   15
 #define configKERNEL_INTERRUPT_PRIORITY (configLIBRARY_LOWEST_INTERRUPT_PRIORITY<<(8-configPRIO_BITS))
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY      (configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY<<(8-configPRIO_BITS))
 

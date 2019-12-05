@@ -5,7 +5,7 @@ if (NOT EXISTS "${FREERTOS_DIR}")
   message(FATAL_ERROR "FreeRTOS submodule not found. Initialize with 'git submodule update --init' in the source directory")
 endif()
 
-set(FREERTOS_PORTABLE "GCC/ARM_CM0" CACHE STRING "Portable definitions")
+set(FREERTOS_PORTABLE "GCC/ARM_CM3" CACHE STRING "Portable definitions")
 set(FREERTOS_MEMORY_MANAGMENT 4 CACHE STRING "https://www.freertos.org/a00111.html")
 set_property(CACHE FREERTOS_MEMORY_MANAGMENT PROPERTY STRINGS 1 2 3 4 5)
 

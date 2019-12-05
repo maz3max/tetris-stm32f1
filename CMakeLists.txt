@@ -17,7 +17,7 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 ## Tetris (in C language)
 add_executable(
   tetris.elf
-  src/tetris.c
+  src/main.cpp
 )
 add_dependencies(
   tetris.elf
