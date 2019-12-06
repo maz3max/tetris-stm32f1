@@ -18,6 +18,8 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 add_executable(
   tetris.elf
   src/main.cpp
+  src/display.cpp
+  src/tetris.cpp
 )
 add_dependencies(
   tetris.elf
