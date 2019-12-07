@@ -86,14 +86,14 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
     }
     this->tile[0][0] = x;
     tile[0][1] = y;
-    for (size_t i = 0; i < 3; i++) {
+    for (size_t i = 0; i < 3; ++i) {
       this->tile[i + 1][0] = x + this->tiles[_index][i][0];
       this->tile[i + 1][1] = y + this->tiles[_index][i][1];
     }
   }
 
   bool check_collision() {
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; ++i) {
       int8_t _x = this->tile[i][0];
       int8_t _y = this->tile[i][1];
 
@@ -122,11 +122,11 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   // tries to move one block left (-1) or right (1)
   // resets to previous state if failed
   void move_x(const int8_t dir) {
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; ++i) {
       this->tile[i][0] += dir;
     }
     if (check_collision()) {
-      for (size_t i = 0; i < 4; i++) {
+      for (size_t i = 0; i < 4; ++i) {
         this->tile[i][0] -= dir;
       }
     } else {
@@ -137,11 +137,11 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   // tries to move one block down
   // returns false if it fails
   bool fall_down() {
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; ++i) {
       this->tile[i][1]++;
     }
     if (check_collision()) {
-      for (size_t i = 0; i < 4; i++) {
+      for (size_t i = 0; i < 4; ++i) {
         this->tile[i][1]--;
       }
       return false;
@@ -165,7 +165,7 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   // returns false, if tile sticks out of the screen
   bool apply_tile() {
     bool result = true;
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; ++i) {
       int8_t _x = this->tile[i][0];
       int8_t _y = this->tile[i][1];
       if (_y >= 0) {
@@ -178,7 +178,7 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
 
   // erases tile from the screen
   void unapply_tile() {
-    for (size_t i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; ++i) {
       int8_t _x = this->tile[i][0];
       int8_t _y = this->tile[i][1];
       if (_y >= 0) {
@@ -195,10 +195,10 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
         if (this->playground[i][j] == 0) {
           break;
         }
-        i++;
+        ++i;
       }
       if (i == WIDTH - 1 && this->playground[i][j] != 0) {
-        for (i = 0; i < WIDTH; i++) {
+        for (i = 0; i < WIDTH; ++i) {
           this->playground[i][j] = static_cast<uint8_t>(BLINK);
         }
       }
@@ -209,12 +209,12 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   void remove_lines() {
     for (size_t k = 0; k < HEIGHT; k++) {
       if (this->playground[0][k] == static_cast<uint8_t>(BLINK)) {
-        for (size_t i = 0; i < WIDTH; i++) {
+        for (size_t i = 0; i < WIDTH; ++i) {
           for (size_t j = k; j > 0; j--) {
             this->playground[i][j] = this->playground[i][j - 1];
           }
         }
-        for (size_t i = 0; i < WIDTH; i++) {
+        for (size_t i = 0; i < WIDTH; ++i) {
           this->playground[i][0] = 0;
         }
       }
@@ -231,7 +231,7 @@ public:
       for (size_t j = 0; j < HEIGHT - 1; ++j) {
         if (this->playground[0][j] != static_cast<uint8_t>(BLINK) &&
             this->playground[0][j + 1] == static_cast<uint8_t>(BLINK)) {
-          for (size_t i = 0; i < WIDTH; i++) {
+          for (size_t i = 0; i < WIDTH; ++i) {
             this->playground[i][j] = static_cast<uint8_t>(BLINK);
           }
           break;
@@ -274,7 +274,7 @@ public:
         if (!apply_tile()) {          // tile sticks out of the top
           this->status.ending = true; // you lost!
           // fill bottom line (start animation)
-          for (size_t i = 0; i < WIDTH; i++) {
+          for (size_t i = 0; i < WIDTH; ++i) {
             this->playground[i][HEIGHT - 1] = static_cast<uint8_t>(BLINK);
           }
         } else { // tile placed - proceed with next one
