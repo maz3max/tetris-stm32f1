@@ -19,7 +19,12 @@ void task_blink(void *args __attribute__((unused))) {
 }
 
 int main(void) {
+  // use the HSI clock and PLL to reach 64 MHz
   rcc_clock_setup_in_hsi_out_64mhz();
+
+  // specify grouping of interrupt priorities (what part of the 8 bits is
+  // allocated to index and subindex),  we use no subindex
+  // https://www.freertos.org/RTOS-Cortex-M3-M4.html
   scb_set_priority_grouping(SCB_AIRCR_PRIGROUP_GROUP16_NOSUB);
 
   rcc_periph_clock_enable(RCC_GPIOA);
