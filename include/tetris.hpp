@@ -227,6 +227,13 @@ public:
     if (this->status.pause) {
       return;
     }
+    if (this->status.reset) {
+      reset_tile();
+      memset(&this->status, 0, sizeof(Status));
+      memset(this->playground, 0, WIDTH * HEIGHT);
+      this->timer = 0;
+      return;
+    }
     if (this->status.ending) {
       for (size_t j = 0; j < HEIGHT - 1; ++j) {
         if (this->playground[0][j] != static_cast<uint8_t>(BLINK) &&
@@ -237,13 +244,6 @@ public:
           break;
         }
       }
-      return;
-    }
-    if (this->status.reset) {
-      reset_tile();
-      memset(&this->status, 0, sizeof(Status));
-      memset(this->playground, 0, WIDTH * HEIGHT);
-      this->timer = 0;
       return;
     }
     unapply_tile();
