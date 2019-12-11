@@ -19,6 +19,7 @@ add_executable(
   tetris.elf
   src/main.cpp
   src/display.cpp
+  src/buttons.cpp
 )
 add_dependencies(
   tetris.elf
