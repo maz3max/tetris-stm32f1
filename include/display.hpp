@@ -7,4 +7,4 @@
 void display_init();
 
 // light up a single dot
-void draw_dot(uint8_t row, uint8_t col);
+void draw_dot(uint8_t row, uint8_t col, bool enable);

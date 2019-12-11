@@ -91,13 +91,15 @@ __attribute__((always_inline)) inline static void clear_display() {
   gpio_set(GPIOB, display_pins_cols(GPIOB));
 }
 
-void draw_dot(uint8_t row, uint8_t col) {
+void draw_dot(uint8_t row, uint8_t col, bool enable) {
   // turn off all leds
   clear_display();
 
-  // turn on the wanted led
-  gpio_set(row_ports[row], row_pins[row]);
-  gpio_clear(col_ports[col], col_pins[col]);
+  if (enable) {
+    // turn on the wanted led
+    gpio_set(row_ports[row], row_pins[row]);
+    gpio_clear(col_ports[col], col_pins[col]);
+  }
 }
 
 void display_init() {
