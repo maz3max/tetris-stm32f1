@@ -47,6 +47,17 @@ void task_check_buttons(void *args __attribute__((unused))) {
 void task_game_logic(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
+      auto &status = tetris.get_status();
+      status.left = btn_states[BTN_LEFT];
+      status.right = btn_states[BTN_RIGHT];
+      status.down = btn_states[BTN_DOWN];
+      status.rotCW = btn_states[BTN_A];
+      status.rotCCW = btn_states[BTN_B];
+      if (status.ending) {
+        status.reset = btn_states[BTN_LEFT] || btn_states[BTN_RIGHT] ||
+                       btn_states[BTN_DOWN] || btn_states[BTN_A] ||
+                       btn_states[BTN_B];
+      }
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
     }
