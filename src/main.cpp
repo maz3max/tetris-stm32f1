@@ -8,13 +8,19 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "display.hpp"
+
 #define PORT_LED GPIOA
 #define PIN_LED GPIO8
 
 void task_blink(void *args __attribute__((unused))) {
   while (1) {
-    gpio_toggle(PORT_LED, PIN_LED);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    for (int y = 0; y < 16; ++y){
+      for(int x = 0; x < 8; ++x){
+        draw_dot(y,x);
+        __asm__("nop");
+      }
+    }
   }
 }
 
@@ -27,12 +33,10 @@ int main(void) {
   // https://www.freertos.org/RTOS-Cortex-M3-M4.html
   scb_set_priority_grouping(SCB_AIRCR_PRIGROUP_GROUP16_NOSUB);
 
-  rcc_periph_clock_enable(RCC_GPIOA);
-  gpio_set_mode(PORT_LED, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL,
-                PIN_LED);
-  gpio_set(PORT_LED, PIN_LED);
-  int *test_var = new (int);
-  *test_var = 5;
+  rcc_periph_clock_enable(RCC_AFIO);
+  gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, 0);
+
+  display_init();
 
   xTaskCreate(task_blink, "blink", 100, NULL, configMAX_PRIORITIES - 1, NULL);
   vTaskStartScheduler();
