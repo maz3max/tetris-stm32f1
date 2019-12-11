@@ -21,7 +21,7 @@ static constexpr uint16_t btn_all_pins(uint32_t port) {
   return result;
 }
 
-bool btn_pressed (size_t num) {
+bool btn_pressed(size_t num) {
   configASSERT(num < 5);
   return !gpio_get(btns_ports[num], btns_pins[num]);
 }
