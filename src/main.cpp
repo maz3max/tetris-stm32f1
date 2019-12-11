@@ -20,11 +20,9 @@ std::atomic<bool> btn_states[NUM_BTNS] = {0};
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
-      for (int y = 0; y < 16; ++y) {
-        for (int x = 0; x < 8; ++x) {
-          draw_dot(y, x, (x + y * 9) % 2 == 0);
+      for (size_t i = 0; i < NUM_BTNS; ++i){
+        draw_dot(0,i,btn_states[i]);
           __asm__("nop");
-        }
       }
       // just clear display
       draw_dot(0, 0, 0);
