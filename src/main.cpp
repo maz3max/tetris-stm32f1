@@ -13,7 +13,10 @@
 #include "display.hpp"
 #include "tetris.hpp"
 
-Tetris<8, 16> tetris;                     // game logic object
+#define PG_HEIGHT 16 // playground height
+#define PG_WIDTH 8   // playground width
+
+Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
 std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed
 
@@ -23,8 +26,8 @@ void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto *playground = tetris.get_playground();
-      for (size_t y = 0; y < 16; ++y) {
-        for (size_t x = 0; x < 8; ++x) {
+      for (size_t y = 0; y < PG_HEIGHT; ++y) {
+        for (size_t x = 0; x < PG_WIDTH; ++x) {
           draw_dot(y, x, playground[x][y]);
           __asm__("nop"); // wait for the pin status to take effect
         }

@@ -22,7 +22,7 @@ static constexpr uint16_t btn_all_pins(uint32_t port) {
 }
 
 bool btn_pressed(size_t num) {
-  configASSERT(num < 5);
+  configASSERT(num < NUM_BTNS);
   return !gpio_get(btns_ports[num], btns_pins[num]);
 }
 
