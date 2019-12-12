@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
-// should return a number between 0 and top - 1
+// TODO: should return a pseudo-random number between 0 and top - 1
 uint32_t random(uint32_t top) { return 0; }
 
 template <size_t WIDTH, size_t HEIGHT> struct Tetris {

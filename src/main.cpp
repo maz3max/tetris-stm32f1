@@ -13,10 +13,12 @@
 #include "display.hpp"
 #include "tetris.hpp"
 
-Tetris<8, 16> tetris;
-SemaphoreHandle_t game_data_mutex = NULL;
-std::atomic<bool> btn_states[NUM_BTNS] = {0};
+Tetris<8, 16> tetris;                     // game logic object
+SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
+std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed
 
+// this task has to run very regularly to cycle between all the display dots
+// it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
@@ -24,26 +26,32 @@ void task_display_refresh(void *args __attribute__((unused))) {
       for (size_t y = 0; y < 16; ++y) {
         for (size_t x = 0; x < 8; ++x) {
           draw_dot(y, x, playground[x][y]);
-          __asm__("nop");
+          __asm__("nop"); // wait for the pin status to take effect
         }
       }
       // just clear display
       draw_dot(0, 0, 0);
       xSemaphoreGive(game_data_mutex);
     }
-    taskYIELD();
+    taskYIELD(); // run other tasks with same priority
   }
 }
 
+// this task reads the button states into a global variable
+// TODO: debouncing, maybe using xTaskGetTickCount() and pdMS_TO_TICKS()?
 void task_check_buttons(void *args __attribute__((unused))) {
   while (1) {
     for (size_t i = 0; i < NUM_BTNS; ++i) {
       btn_states[i] = btn_pressed(i);
     }
-    taskYIELD();
+    taskYIELD(); // run other tasks with same priority
   }
 }
 
+// this task updates the game logic
+// it is delayed with a fixed delay and can therefore get a higher priority.
+// due to the higher priority, it will take precedence over the display task
+// and can claim the game object mutex
 void task_game_logic(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
@@ -82,14 +90,17 @@ int main(void) {
   game_data_mutex = xSemaphoreCreateMutex();
   configASSERT(game_data_mutex);
 
+  // initialize IO
   display_init();
   btn_init();
 
+  // add tasks and start scheduler
   xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
   xTaskCreate(task_check_buttons, "buttons", 100, NULL, 1, NULL);
   xTaskCreate(task_game_logic, "game", 100, NULL, 2, NULL);
   vTaskStartScheduler();
 
+  // this should never be reached
   while (1)
     ;
 }
