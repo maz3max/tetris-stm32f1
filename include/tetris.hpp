@@ -20,9 +20,11 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
     bool ending : 1;
 
   public:
-    Status() {
+    Status(bool init = false) {
       memset(this, 0, sizeof(Status));
-      this->reset = true;
+      if (init) {
+        this->reset = true;
+      }
     }
   };
 
@@ -52,9 +54,9 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   int8_t pos[2] = {0};     // position of pivot point of current tile
   uint8_t tile_nr = 0;     // type of current tile  (index)
   uint8_t rotation = 0;    // rotation of current tile (sub_index)
-  Status status;           // game status
-  Color color = RED;       // color value of the current tile
-  uint8_t timer = 0;       // timer for slow ticks
+  Status status = Status(true); // game status
+  Color color = RED;            // color value of the current tile
+  uint8_t timer = 0;            // timer for slow ticks
 
   // update tile offsets
   void update_tile(const uint8_t tile_rot, const int8_t x, const int8_t y) {
@@ -155,8 +157,8 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   void reset_tile() {
     this->pos[0] = WIDTH / 2;
     this->pos[1] = -1;
-    this->tile_nr = static_cast<Color>(random(7));
-    this->rotation = static_cast<Color>(random(4));
+    this->tile_nr = static_cast<uint8_t>(random(7));
+    this->rotation = static_cast<uint8_t>(random(4));
     this->color = static_cast<Color>(random(6) + 1);
     update_tile(rotation, this->pos[0], this->pos[1]);
   }
@@ -229,7 +231,7 @@ public:
     }
     if (this->status.reset) {
       reset_tile();
-      memset(&this->status, 0, sizeof(Status));
+      this->status = Status();
       memset(this->playground, 0, WIDTH * HEIGHT);
       this->timer = 0;
       return;
