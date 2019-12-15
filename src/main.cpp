@@ -45,7 +45,7 @@ void task_display_refresh(void *args __attribute__((unused))) {
 void task_check_buttons(void *args __attribute__((unused))) {
   while (1) {
     for (size_t i = 0; i < NUM_BTNS; i++) {
-      btn_states[i][1] = btn_states[i][0] // copying the last button states to the "old" states
+      btn_states[i][1] = static_cast<bool>(btn_states[i][0]); // copying the last button states to the "old" states
     }
     for (size_t i = 0; i < NUM_BTNS; ++i) {
       btn_states[i][0] = btn_pressed(i); // actualize current button state
