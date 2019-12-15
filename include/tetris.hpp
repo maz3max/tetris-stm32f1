@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <cstring>
 
-// TODO: should return a pseudo-random number between 0 and top - 1
-uint32_t random(uint32_t top) { return 0; }
+#include "prng.hpp"
 
 template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   typedef enum { RED = 1, GREEN, BLUE, YELLOW, FUCHSIA, AQUA, BLINK } Color;
