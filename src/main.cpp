@@ -19,7 +19,7 @@
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
 std::atomic<bool> btn_states[NUM_BTNS][2] = {0}; // true if buttons are pressed + also contains old button states
-
+std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
@@ -50,6 +50,21 @@ void task_check_buttons(void *args __attribute__((unused))) {
     for (size_t i = 0; i < NUM_BTNS; ++i) {
       btn_states[i][0] = btn_pressed(i); // actualize current button state
     }
+    if(btn_states[BTN_LEFT][0] && !btn_states[BTN_LEFT][1]){
+      btn_flank_state[BTN_LEFT] = true;
+    }
+    if(btn_states[BTN_RIGHT][0] && !btn_states[BTN_RIGHT][1]){
+      btn_flank_state[BTN_RIGHT] = true;
+    }
+    if(btn_states[BTN_DOWN][0] && !btn_states[BTN_DOWN][1]){
+      btn_flank_state[BTN_DOWN] = true;
+    }
+    if(btn_states[BTN_A][0] && !btn_states[BTN_A][1]){
+      btn_flank_state[BTN_A] = true;
+    }
+    if(btn_states[BTN_B][0] && !btn_states[BTN_B][1]){
+      btn_flank_state[BTN_B] = true;
+    }
     taskYIELD(); // run other tasks with same priority
   }
 }
@@ -62,15 +77,25 @@ void task_game_logic(void *args __attribute__((unused))) {
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto &status = tetris.get_status();
-      status.left = btn_states[BTN_LEFT][0] && !btn_states[BTN_LEFT][1];
-      status.right = btn_states[BTN_RIGHT][0] && !btn_states[BTN_RIGHT][1];
-      status.down = btn_states[BTN_DOWN][0] && !btn_states[BTN_DOWN][1];
-      status.rotCW = btn_states[BTN_A][0] && !btn_states[BTN_A][1];
-      status.rotCCW = btn_states[BTN_B][0] && !btn_states[BTN_B][1];
+      status.left = btn_states[BTN_LEFT][0];
+      btn_flank_state[BTN_LEFT] = false;
+
+      status.right = btn_states[BTN_RIGHT][0];
+      btn_flank_state[BTN_RIGHT] = false;
+
+      status.down = btn_states[BTN_DOWN][0];
+      btn_flank_state[BTN_DOWN] = false;
+
+      status.rotCW = btn_flank_state[BTN_A];
+      btn_flank_state[BTN_A] = false;
+
+      status.rotCCW = btn_flank_state[BTN_B];
+      btn_flank_state[BTN_B] = false;
+
       if (status.ending) {
-        status.reset = btn_states[BTN_LEFT][0] || btn_states[BTN_RIGHT][0] ||
-                       btn_states[BTN_DOWN][0] || btn_states[BTN_A][0] ||
-                       btn_states[BTN_B][0];
+        status.reset = btn_flank_state[BTN_LEFT] || btn_flank_state[BTN_RIGHT] ||
+                       btn_flank_state[BTN_DOWN] || btn_flank_state[BTN_A] ||
+                       btn_flank_state[BTN_B];
       }
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
