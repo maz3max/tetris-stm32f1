@@ -13,6 +13,9 @@
 #include "display.hpp"
 #include "tetris.hpp"
 
+#include <libopencm3/stm32/timer.h>
+
+
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
 
@@ -92,34 +95,52 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
+#define E 1318
+#define D 1174
+#define C 1046
+#define H 987
+#define A 880 
+
+int32_t TetrisMusic[30] = {E, E, H, C, D, D, C, H, A, A, A, C, E, E, D, C, H, H, H, C, D, D, E, E, C, C, A, A, A, A} ;
+
 int main(void) {
-  // use the HSI clock and PLL to reach 64 MHz
+
+  uint32_t my_sick_tone = (8000000/21000)/2  ;
+
   rcc_clock_setup_in_hsi_out_64mhz();
+	/* Enable TIM1 clock. */
+	rcc_periph_clock_enable(RCC_TIM2);
 
-  // specify grouping of interrupt priorities (what part of the 8 bits is
-  // allocated to index and subindex),  we use no subindex
-  // https://www.freertos.org/RTOS-Cortex-M3-M4.html
-  scb_set_priority_grouping(SCB_AIRCR_PRIGROUP_GROUP16_NOSUB);
+	/* Enable GPIOC, Alternate Function clocks. */
+	rcc_periph_clock_enable(RCC_GPIOA);
+	rcc_periph_clock_enable(RCC_AFIO);
 
-  // repurpose JTAG PINS for GPIO
-  rcc_periph_clock_enable(RCC_AFIO);
-  gpio_primary_remap(AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_ON, 0);
+  gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
+		      GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
+		      GPIO_TIM2_CH3);
 
-  // create mutex for game data
-  game_data_mutex = xSemaphoreCreateMutex();
-  configASSERT(game_data_mutex);
+  //gpio_set_output_options(GPIOA, GPIO_OTYPE_PP,
+  //                      GPIO_OSPEED_50MHZ, GPIO8 | GPIO9);
+  timer_set_mode(TIM2, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_CENTER_1,
+                TIM_CR1_DIR_UP);
+  timer_set_oc_mode(TIM2, TIM_OC3, TIM_OCM_PWM2);
+  timer_enable_oc_output(TIM2, TIM_OC3);
+  timer_enable_break_main_output(TIM2);
+  timer_set_oc_value(TIM2, TIM_OC3, my_sick_tone);
+  timer_set_prescaler(TIM2, 4);
+  timer_set_period(TIM2, my_sick_tone*2);
+  timer_enable_counter(TIM2);
 
-  // initialize IO
-  display_init();
-  btn_init();
-
-  // add tasks and start scheduler
-  xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
-  xTaskCreate(task_check_buttons, "buttons", 100, NULL, 1, NULL);
-  xTaskCreate(task_game_logic, "game", 100, NULL, 2, NULL);
-  vTaskStartScheduler();
-
-  // this should never be reached
-  while (1)
-    ;
+  while(1) {
+    for (int i = 0; i < 30; i++){
+      my_sick_tone = (8000000/TetrisMusic[i])/2 ;
+      //timer_enable_break_main_output(TIM2);
+      timer_set_period(TIM2, my_sick_tone*2);
+      timer_set_oc_value(TIM2, TIM_OC3, my_sick_tone);
+      for(uint32_t k = 0; k<1600000; k++) {
+        __asm__("nop");
+      }
+    }
+  }
+  
 }
