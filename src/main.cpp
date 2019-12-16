@@ -89,7 +89,8 @@ void task_game_logic(void *args __attribute__((unused))) {
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
     }
-    vTaskDelay(pdMS_TO_TICKS(100));
+    int score = tetris.get_score();
+    vTaskDelay(pdMS_TO_TICKS(100-(score * 5)));
   }
 }
 

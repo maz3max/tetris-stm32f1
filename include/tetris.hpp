@@ -56,6 +56,7 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   Status status = Status(true); // game status
   Color color = RED;            // color value of the current tile
   uint8_t timer = 0;            // timer for slow ticks
+  uint16_t score = 0;           // amount of rows destroyed during the game
 
   // update tile offsets
   void update_tile(const uint8_t tile_rot, const int8_t x, const int8_t y) {
@@ -202,6 +203,7 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
         for (i = 0; i < WIDTH; ++i) {
           this->playground[i][j] = static_cast<uint8_t>(BLINK);
         }
+        this->score += 1;
       }
     }
   }
@@ -223,6 +225,10 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   }
 
 public:
+  // returns the game score 
+  int get_score(){
+    return this->score ;
+  }
   // performs one game logic tick
   void tick() {
     if (this->status.pause) {
