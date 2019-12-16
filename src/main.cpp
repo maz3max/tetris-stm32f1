@@ -95,13 +95,16 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
+#define A2 1760
+#define G 1568
+#define F 1396
 #define E 1318
 #define D 1174
 #define C 1046
 #define H 987
 #define A 880 
 
-int32_t TetrisMusic[30] = {E, E, H, C, D, D, C, H, A, A, A, C, E, E, D, C, H, H, H, C, D, D, E, E, C, C, A, A, A, A} ;
+int32_t TetrisMusic[64] = {E, E, H, C, D, D, C, H, A, A, A, C, E, E, D, C, H, H, H, C, D, D, E, E, C, C, A, A, A, A, A, A, D, D, D, F, A2, A2, G, F, E, E, E, C, E, E, D, C, H, H, H, C, D, D, E, E, C, C, A, A, A, A, A, A};
 
 int main(void) {
 
@@ -132,7 +135,7 @@ int main(void) {
   timer_enable_counter(TIM2);
 
   while(1) {
-    for (int i = 0; i < 30; i++){
+    for (int i = 0; i < 64; i++){
       my_sick_tone = (8000000/TetrisMusic[i])/2 ;
       //timer_enable_break_main_output(TIM2);
       timer_set_period(TIM2, my_sick_tone*2);
