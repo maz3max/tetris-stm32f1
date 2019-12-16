@@ -17,6 +17,7 @@
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
 
+
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
 std::atomic<bool> btn_states[NUM_BTNS][2] = {0}; // true if buttons are pressed + also contains old button states
@@ -96,10 +97,41 @@ void task_game_logic(void *args __attribute__((unused))) {
 }
 
 void draw_number_test(int nmb){
-  int x = nmb/10 
-  int y = nmb-x 
-  int numberarray[10] = [ze, on, tw, th, fo, fi, si, se, ei, ni]
-  //todo: make matrix out of font stuff ... 
+  int a = nmb / 10;
+  int b = nmb - a ;
+  uint8_t* numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
+  
+  while(1) {
+    for(uint8_t y = 0; y< PG_HEIGHT ; y++){
+      for(uint8_t x = 0; x< PG_WIDTH; x++){
+        if(x<3 && y<8){
+          uint8_t n = numberarray[a][x] ;
+          uint8_t bit = 1<<(7-y);
+          if((bit & n)>0){
+            draw_dot(y, x, 1);
+          } 
+          else{
+            draw_dot(y, x, 0);
+          }
+          //draw_dot(y, x, 1);
+        }
+        else if(x>3 && x<7 && y<8){
+          uint8_t n =numberarray[b][(x-4)] ;
+          uint8_t bit = 1<<(7-y);
+          if((bit & n)>0){
+            draw_dot(y, x, 1);
+          } 
+          else{
+            draw_dot(y, x, 0);
+          }
+          //draw_dot(y, x, 1);
+         }
+        //draw_dot(y,x,1);
+        draw_dot(15,7,0);
+        __asm__("nop");   
+      }
+    }
+  }
 }
 
 int main(void) {
@@ -122,7 +154,9 @@ int main(void) {
   // initialize IO
   display_init();
   btn_init();
-  draw_number_test(42);
+
+  // test stuff befor thred stuff 
+  draw_number_test(69);
 
   // add tasks and start scheduler
   xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
