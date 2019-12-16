@@ -27,11 +27,12 @@
 #define C 1046  // 261
 #define H 987   // 246
 #define A 880   // 220
+#define N 40000 
 
 const int32_t TetrisMusic[64] = {
     E, E, H, C, D, D, C, H, A, A, A, C, E, E, D,  C,  H, H, H, C, D, D,
-    E, E, C, C, A, A, A, A, A, A, D, D, D, F, A2, A2, G, F, E, E, E, C,
-    E, E, D, C, H, H, H, C, D, D, E, E, C, C, A,  A,  A, A, A, A};
+    E, E, C, C, A, A, A, A, N, N, D, D, D, F, A2, A2, G, F, E, E, E, C,
+    E, E, D, C, H, H, H, C, D, D, E, E, C, C, A,  A,  A, A, N, N};
 
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
