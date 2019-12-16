@@ -12,6 +12,7 @@
 #include "buttons.hpp"
 #include "display.hpp"
 #include "tetris.hpp"
+#include "matrixFont.h"
 
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
@@ -94,6 +95,13 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
+void draw_number_test(int nmb){
+  int x = nmb/10 
+  int y = nmb-x 
+  int numberarray[10] = [ze, on, tw, th, fo, fi, si, se, ei, ni]
+  //todo: make matrix out of font stuff ... 
+}
+
 int main(void) {
   // use the HSI clock and PLL to reach 64 MHz
   rcc_clock_setup_in_hsi_out_64mhz();
@@ -114,6 +122,7 @@ int main(void) {
   // initialize IO
   display_init();
   btn_init();
+  draw_number_test(42);
 
   // add tasks and start scheduler
   xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
