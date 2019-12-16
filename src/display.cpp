@@ -1,6 +1,9 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include "display.hpp"
 
 static constexpr const uint32_t row_ports[DISPLAY_ROWS] = {
@@ -98,6 +101,26 @@ void draw_dot(uint8_t row, uint8_t col, bool enable) {
   if (enable) {
     // turn on the wanted led
     gpio_set(row_ports[row], row_pins[row]);
+    gpio_clear(col_ports[col], col_pins[col]);
+  }
+}
+
+void double_draw_dot(uint8_t row, uint8_t col, bool enable_top,
+                     bool enable_bottom) {
+  configASSERT(row < 8);
+  // turn off all leds
+  clear_display();
+
+  if (enable_top) {
+    // turn on the wanted led
+    gpio_set(row_ports[row], row_pins[row]);
+  }
+  if (enable_bottom) {
+    // turn on the wanted led
+    gpio_set(row_ports[row + (DISPLAY_ROWS / 2)],
+             row_pins[row + (DISPLAY_ROWS / 2)]);
+  }
+  if (enable_top || enable_bottom) {
     gpio_clear(col_ports[col], col_pins[col]);
   }
 }
