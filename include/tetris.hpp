@@ -242,6 +242,7 @@ public:
       return;
     }
     if (this->status.ending) {
+      this->score = 0;
       for (size_t j = 0; j < HEIGHT - 1; ++j) {
         if (this->playground[0][j] != static_cast<uint8_t>(BLINK) &&
             this->playground[0][j + 1] == static_cast<uint8_t>(BLINK)) {
