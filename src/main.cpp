@@ -96,7 +96,9 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
+// this funktion takes two numbers between 0 and 99 and displays them one on the top matrix and an other on the bottom matrix
 void draw_number_test(int nmb_top, int nmb_bot){
+  if(nmb_top>99 || nmb_bot>99){return;}
   int a = nmb_top / 10;
   int b = nmb_top - (a*10) ;
   int a_bot = nmb_bot / 10 ;
