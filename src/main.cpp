@@ -16,19 +16,28 @@
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
 
+
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
+SemaphoreHandle_t score_mutex = NULL;
 std::atomic<bool> btn_states[NUM_BTNS][2] = {0}; // true if buttons are pressed + also contains old button states
 std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
+std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbers as dotmatrix to display
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
-    if(tetris.get_game_over_status() == 1){
-      for(int i=0; i<tetris.get_score(); i++){
-        draw_dot(i, 1, 1);
-        __asm__("nop"); // wait for the pin status to take effect
+    if(tetris.get_game_over_status() == 1 && (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE)){
+      for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
+        for (size_t x = 0; x < PG_WIDTH; ++x) {
+          double_draw_dot(y, x, score_display[y][x],
+                          score_display[y + (PG_HEIGHT / 2)][x]);
+          __asm__("nop"); // wait for the pin status to take effect
+        }
       }
+      // just clear display
+      draw_dot(0, 0, 0);
+      xSemaphoreGive(score_mutex);
     }
     else if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto *playground = tetris.get_playground();
@@ -66,12 +75,71 @@ void task_check_buttons(void *args __attribute__((unused))) {
   }
 }
 
+void draw_number_field(int nmb_top, int nmb_bot){
+  if(nmb_top>99 || nmb_bot>99){return;}
+  int a = nmb_top / 10;
+  int b = nmb_top - (a*10) ;
+  int a_bot = nmb_bot / 10 ;
+  int b_bot = nmb_bot - (a_bot*10) ;
+  uint8_t* numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
+  if (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE) {
+  for(uint8_t y = 0; y< PG_HEIGHT ; y++){
+    for(uint8_t x = 0; x< PG_WIDTH; x++){
+      if(x<3 && y<8){
+        uint8_t n = numberarray[a][x] ;
+        uint8_t bit = 1<<(7-y);
+        if((bit & n)>0){
+          score_display[y][x] = 1;
+        } 
+        else{
+          score_display[y][x] = 0;
+        }
+        //draw_dot(y, x, 1);
+      }
+      else if(x>3 && x<7 && y<8){
+        uint8_t n =numberarray[b][(x-4)] ;
+        uint8_t bit = 1<<(7-y);
+        if((bit & n)>0){
+          score_display[y][x] = 1;
+        } 
+        else{
+          score_display[y][x] = 0;
+        }
+        //draw_dot(y, x, 1);
+        }
+      else if(x<3 && y>7){
+        uint8_t n = numberarray[a_bot][x] ;
+        uint8_t bit = 1<<(15-y);
+        if((bit & n)>0){
+          score_display[y][x] = 1;
+        } 
+        else{
+          score_display[y][x] = 0;
+        }
+      }
+      else if(x>3 && x<7 && y>7){
+        uint8_t n =numberarray[b_bot][(x-4)] ;
+        uint8_t bit = 1<<(15-y);
+        if((bit & n)>0){
+          score_display[y][x] = 1;
+        } 
+        else{
+          score_display[y][x] = 0;
+        }
+      } 
+    }
+  }
+  xSemaphoreGive(score_mutex);
+  }
+}
+
 // this task updates the game logic
 // it is delayed with a fixed delay and can therefore get a higher priority.
 // due to the higher priority, it will take precedence over the display task
 // and can claim the game object mutex
 void task_game_logic(void *args __attribute__((unused))) {
   while (1) {
+    int score = tetris.get_score();
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto &status = tetris.get_status();
 
@@ -82,6 +150,7 @@ void task_game_logic(void *args __attribute__((unused))) {
       status.rotCCW = btn_flank_state[BTN_B];
 
       if (status.ending) {
+        draw_number_field(score, 0);
         status.reset = btn_flank_state[BTN_LEFT] ||
                        btn_flank_state[BTN_RIGHT] ||
                        btn_flank_state[BTN_DOWN] || btn_flank_state[BTN_A] ||
@@ -95,7 +164,6 @@ void task_game_logic(void *args __attribute__((unused))) {
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
     }
-    int score = tetris.get_score();
     int new_delay = 100-(score*5) ;
     if(new_delay<20) {
       new_delay = 20;
@@ -119,7 +187,10 @@ int main(void) {
 
   // create mutex for game data
   game_data_mutex = xSemaphoreCreateMutex();
+  score_mutex = xSemaphoreCreateMutex();
+
   configASSERT(game_data_mutex);
+  configASSERT(score_mutex);
 
   // initialize IO
   display_init();
@@ -135,3 +206,4 @@ int main(void) {
   while (1)
     ;
 }
+
