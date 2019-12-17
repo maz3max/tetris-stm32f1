@@ -96,9 +96,11 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
-void draw_number_test(int nmb){
-  int a = nmb / 10;
-  int b = nmb - a ;
+void draw_number_test(int nmb_top, int nmb_bot){
+  int a = nmb_top / 10;
+  int b = nmb_top - (a*10) ;
+  int a_bot = nmb_bot / 10 ;
+  int b_bot = nmb_bot - (a_bot*10) ;
   uint8_t* numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
   
   while(1) {
@@ -126,7 +128,27 @@ void draw_number_test(int nmb){
           }
           //draw_dot(y, x, 1);
          }
-        //draw_dot(y,x,1);
+        else if(x<3 && y>7){
+          uint8_t n = numberarray[a_bot][x] ;
+          uint8_t bit = 1<<(15-y);
+          if((bit & n)>0){
+            draw_dot(y, x, 1);
+          } 
+          else{
+            draw_dot(y, x, 0);
+          }
+        }
+        else if(x>3 && x<7 && y>7){
+          uint8_t n =numberarray[b_bot][(x-4)] ;
+          uint8_t bit = 1<<(15-y);
+          if((bit & n)>0){
+            draw_dot(y, x, 1);
+          } 
+          else{
+            draw_dot(y, x, 0);
+          }
+          //draw_dot(y, x, 1);
+         }
         draw_dot(15,7,0);
         __asm__("nop");   
       }
@@ -156,7 +178,7 @@ int main(void) {
   btn_init();
 
   // test stuff befor thred stuff 
-  draw_number_test(69);
+  draw_number_test(42,69);
 
   // add tasks and start scheduler
   xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
