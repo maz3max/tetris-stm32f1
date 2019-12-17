@@ -226,6 +226,9 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
 
 public:
   // returns the game score 
+  int get_game_over_status(){
+    return this->status.ending;
+  }
   int get_score(){
     return this->score ;
   }

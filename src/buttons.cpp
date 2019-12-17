@@ -31,8 +31,9 @@ void btn_init() {
   rcc_periph_clock_enable(RCC_GPIOB);
   gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN,
                 btn_all_pins(GPIOA));
+  gpio_set(GPIOA, btn_all_pins(GPIOA));
+
   gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN,
                 btn_all_pins(GPIOB));
-  gpio_set(GPIOA, btn_all_pins(GPIOA));
   gpio_set(GPIOB, btn_all_pins(GPIOB));
 }

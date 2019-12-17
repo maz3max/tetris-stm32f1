@@ -24,7 +24,13 @@ std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge butto
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
-    if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
+    if(tetris.get_game_over_status() == 1){
+      for(int i=0; i<tetris.get_score(); i++){
+        draw_dot(i, 1, 1);
+        __asm__("nop"); // wait for the pin status to take effect
+      }
+    }
+    else if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto *playground = tetris.get_playground();
       for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
         for (size_t x = 0; x < PG_WIDTH; ++x) {
