@@ -54,8 +54,11 @@ void task_display_refresh(void *args __attribute__((unused))) {
   }
 }
 
-// this task reads the button states into a global variable where state[0] is
-// the latest and state[1] is the last (/old) state
+// this task reads the button states into a global variable
+// debounced button states are stored in btn_states
+// positive flanks are stored in btn_flank_state
+// debouncing is performed using a delta since the last change
+// min_delta_ticks can be used to adjust debouncing aggressivity
 void task_check_buttons(void *args __attribute__((unused))) {
   const TickType_t min_delta_ticks = pdMS_TO_TICKS(50);
   static TickType_t last_change[NUM_BTNS];
