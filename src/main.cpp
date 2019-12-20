@@ -59,16 +59,25 @@ void task_display_refresh(void *args __attribute__((unused))) {
 // this task reads the button states into a global variable where state[0] is
 // the latest and state[1] is the last (/old) state
 void task_check_buttons(void *args __attribute__((unused))) {
+  const TickType_t min_delta_ticks = pdMS_TO_TICKS(50);
+  static TickType_t last_change[NUM_BTNS];
+  static bool last_state[NUM_BTNS];
   while (1) {
     for (size_t i = 0; i < NUM_BTNS; i++) {
-      btn_states[i][1] = static_cast<bool>(btn_states[i][0]); // copying the last button states to the "old" states
-    }
-    for (size_t i = 0; i < NUM_BTNS; ++i) {
-      btn_states[i][0] = btn_pressed(i); // update current button state
-    }
-    for (size_t i = 0; i < NUM_BTNS; ++i) {
-      if (btn_states[i][0] && !btn_states[i][1]) {
-        btn_flank_state[i] = true;
+      bool current_state = btn_pressed(i);
+      if (current_state != last_state[i]) {
+        last_change[i] = xTaskGetTickCount();
+        last_state[i] = current_state;
+      } else {
+        auto delta = xTaskGetTickCount() - last_change[i];
+        if (delta > min_delta_ticks) {
+          if (btn_states[i] != current_state) {
+            btn_states[i] = current_state;
+            if (current_state) {
+              btn_flank_state[i] = true;
+            }
+          }
+        }
       }
     }
     taskYIELD(); // run other tasks with same priority
@@ -138,9 +147,9 @@ void task_game_logic(void *args __attribute__((unused))) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto &status = tetris.get_status();
 
-      status.left = btn_states[BTN_LEFT][0];
-      status.right = btn_states[BTN_RIGHT][0];
-      status.down = btn_states[BTN_DOWN][0];
+      status.left = btn_states[BTN_LEFT];
+      status.right = btn_states[BTN_RIGHT];
+      status.down = btn_states[BTN_DOWN];
       status.rotCW = btn_flank_state[BTN_A];
       status.rotCCW = btn_flank_state[BTN_B];
 
