@@ -20,7 +20,7 @@
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
 SemaphoreHandle_t score_mutex = NULL;
-std::atomic<bool> btn_states[NUM_BTNS][2] = {0}; // true if buttons are pressed + also contains old button states
+std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed + also contains old button states
 std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
 std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbers as dotmatrix to display
 // this task has to run very regularly to cycle between all the display dots
@@ -72,7 +72,7 @@ void task_check_buttons(void *args __attribute__((unused))) {
       } else {
         auto delta = xTaskGetTickCount() - last_change[i];
         if (delta > min_delta_ticks) {
-          if (btn_states[i] != current_state) {
+          if (static_cast<bool>(btn_states[i]) != current_state) {
             btn_states[i] = current_state;
             if (current_state) {
               btn_flank_state[i] = true;
