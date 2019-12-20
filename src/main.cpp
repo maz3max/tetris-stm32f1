@@ -14,10 +14,8 @@
 #include "matrixFont.h"
 #include "tetris.hpp"
 
-
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
-
 
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
