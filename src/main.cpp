@@ -1,6 +1,7 @@
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/flash.h>
 
 #include <atomic>
 #include <cstdlib>
@@ -17,12 +18,21 @@
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
 
+#define SEND_BUFFER_SIZE 256
+#define FLASH_OPERATION_ADDRESS ((uint32_t)0x0800f000)
+#define FLASH_PAGE_NUM_MAX 127
+#define FLASH_PAGE_SIZE 0x800
+#define FLASH_WRONG_DATA_WRITTEN 0x80
+#define RESULT_OK 0
+
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
 SemaphoreHandle_t score_mutex = NULL;
 std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed + also contains old button states
 std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
 std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbers as dotmatrix to display
+uint8_t highscore[4] = {0}; 
+
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
@@ -85,6 +95,61 @@ void task_check_buttons(void *args __attribute__((unused))) {
   }
 }
 
+
+static uint32_t flash_program_data(uint32_t start_address, uint8_t *input_data, uint16_t num_elements)
+{
+	uint16_t iter;
+	uint32_t current_address = start_address;
+	uint32_t page_address = start_address;
+	uint32_t flash_status = 0;
+
+	/*check if start_address is in proper range*/
+	if((start_address - FLASH_BASE) >= (FLASH_PAGE_SIZE * (FLASH_PAGE_NUM_MAX+1)))
+		return 1;
+
+	/*calculate current page address*/
+	if(start_address % FLASH_PAGE_SIZE)
+		page_address -= (start_address % FLASH_PAGE_SIZE);
+
+	flash_unlock();
+
+	/*Erasing page*/
+	flash_erase_page(page_address);
+	flash_status = flash_get_status_flags();
+	if(flash_status != FLASH_SR_EOP)
+		return flash_status;
+
+	/*programming flash memory*/
+	for(iter=0; iter<num_elements; iter += 4)
+	{
+		/*programming word data*/
+		flash_program_word(current_address+iter, *((uint32_t*)(input_data + iter)));
+		flash_status = flash_get_status_flags();
+		if(flash_status != FLASH_SR_EOP)
+			return flash_status;
+
+		/*verify if correct data is programmed*/
+		if(*((uint32_t*)(current_address+iter)) != *((uint32_t*)(input_data + iter)))
+			return FLASH_WRONG_DATA_WRITTEN;
+	}
+
+	return 0;
+}
+
+
+static void flash_read_data(uint32_t start_address, uint16_t num_elements, uint8_t *output_data)
+{
+	uint16_t iter;
+	uint32_t *memory_ptr= (uint32_t*)start_address;
+
+	for(iter=0; iter<num_elements/4; iter++)
+	{
+		*(uint32_t*)output_data = *(memory_ptr + iter);
+		output_data += 4;
+	}
+}
+
+
 void draw_number_field(int nmb_top, int nmb_bot) {
   if (nmb_top > 99 || nmb_bot > 99) {
     return;
@@ -144,7 +209,7 @@ void draw_number_field(int nmb_top, int nmb_bot) {
 // and can claim the game object mutex
 void task_game_logic(void *args __attribute__((unused))) {
   while (1) {
-    int score = tetris.get_score();
+    uint8_t score = tetris.get_score();
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto &status = tetris.get_status();
 
@@ -155,7 +220,12 @@ void task_game_logic(void *args __attribute__((unused))) {
       status.rotCCW = btn_flank_state[BTN_B];
 
       if (status.ending) {
-        draw_number_field(score, 0);
+        flash_read_data(FLASH_OPERATION_ADDRESS, 4, highscore);
+        if(score > highscore[0]){
+          highscore[0] = score;
+          flash_program_data(FLASH_OPERATION_ADDRESS, highscore, 4);
+        }
+        draw_number_field(score, highscore[0]);
         status.reset = btn_flank_state[BTN_LEFT] ||
                        btn_flank_state[BTN_RIGHT] ||
                        btn_flank_state[BTN_DOWN] || btn_flank_state[BTN_A] ||
