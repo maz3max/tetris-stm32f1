@@ -12,6 +12,7 @@
 #include "buttons.hpp"
 #include "display.hpp"
 #include "matrixFont.h"
+#include "tetris.hpp"
 
 
 #define PG_HEIGHT 16 // playground height
