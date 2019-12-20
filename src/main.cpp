@@ -11,7 +11,6 @@
 
 #include "buttons.hpp"
 #include "display.hpp"
-#include "tetris.hpp"
 #include "matrixFont.h"
 
 
@@ -29,7 +28,8 @@ std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbe
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
-    if(tetris.get_game_over_status() == 1 && (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE)){
+    if (tetris.get_game_over_status() == 1 &&
+        (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE)) {
       for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
         for (size_t x = 0; x < PG_WIDTH; ++x) {
           double_draw_dot(y, x, score_display[y][x],
@@ -40,8 +40,7 @@ void task_display_refresh(void *args __attribute__((unused))) {
       // just clear display
       draw_dot(0, 0, 0);
       xSemaphoreGive(score_mutex);
-    }
-    else if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
+    } else if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
       auto *playground = tetris.get_playground();
       for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
         for (size_t x = 0; x < PG_WIDTH; ++x) {
@@ -77,61 +76,56 @@ void task_check_buttons(void *args __attribute__((unused))) {
   }
 }
 
-void draw_number_field(int nmb_top, int nmb_bot){
-  if(nmb_top>99 || nmb_bot>99){return;}
-  int a = nmb_top / 10;
-  int b = nmb_top - (a*10) ;
-  int a_bot = nmb_bot / 10 ;
-  int b_bot = nmb_bot - (a_bot*10) ;
-  uint8_t* numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
-  if (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE) {
-  for(uint8_t y = 0; y< PG_HEIGHT ; y++){
-    for(uint8_t x = 0; x< PG_WIDTH; x++){
-      if(x<3 && y<8){
-        uint8_t n = numberarray[a][x] ;
-        uint8_t bit = 1<<(7-y);
-        if((bit & n)>0){
-          score_display[y][x] = 1;
-        } 
-        else{
-          score_display[y][x] = 0;
-        }
-        //draw_dot(y, x, 1);
-      }
-      else if(x>3 && x<7 && y<8){
-        uint8_t n =numberarray[b][(x-4)] ;
-        uint8_t bit = 1<<(7-y);
-        if((bit & n)>0){
-          score_display[y][x] = 1;
-        } 
-        else{
-          score_display[y][x] = 0;
-        }
-        //draw_dot(y, x, 1);
-        }
-      else if(x<3 && y>7){
-        uint8_t n = numberarray[a_bot][x] ;
-        uint8_t bit = 1<<(15-y);
-        if((bit & n)>0){
-          score_display[y][x] = 1;
-        } 
-        else{
-          score_display[y][x] = 0;
-        }
-      }
-      else if(x>3 && x<7 && y>7){
-        uint8_t n =numberarray[b_bot][(x-4)] ;
-        uint8_t bit = 1<<(15-y);
-        if((bit & n)>0){
-          score_display[y][x] = 1;
-        } 
-        else{
-          score_display[y][x] = 0;
-        }
-      } 
-    }
+void draw_number_field(int nmb_top, int nmb_bot) {
+  if (nmb_top > 99 || nmb_bot > 99) {
+    return;
   }
-  xSemaphoreGive(score_mutex);
+  int a = nmb_top / 10;
+  int b = nmb_top - (a * 10);
+  int a_bot = nmb_bot / 10;
+  int b_bot = nmb_bot - (a_bot * 10);
+  uint8_t *numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
+  if (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE) {
+    for (uint8_t y = 0; y < PG_HEIGHT; y++) {
+      for (uint8_t x = 0; x < PG_WIDTH; x++) {
+        if (x < 3 && y < 8) {
+          uint8_t n = numberarray[a][x];
+          uint8_t bit = 1 << (7 - y);
+          if ((bit & n) > 0) {
+            score_display[y][x] = 1;
+          } else {
+            score_display[y][x] = 0;
+          }
+          // draw_dot(y, x, 1);
+        } else if (x > 3 && x < 7 && y < 8) {
+          uint8_t n = numberarray[b][(x - 4)];
+          uint8_t bit = 1 << (7 - y);
+          if ((bit & n) > 0) {
+            score_display[y][x] = 1;
+          } else {
+            score_display[y][x] = 0;
+          }
+          // draw_dot(y, x, 1);
+        } else if (x < 3 && y > 7) {
+          uint8_t n = numberarray[a_bot][x];
+          uint8_t bit = 1 << (15 - y);
+          if ((bit & n) > 0) {
+            score_display[y][x] = 1;
+          } else {
+            score_display[y][x] = 0;
+          }
+        } else if (x > 3 && x < 7 && y > 7) {
+          uint8_t n = numberarray[b_bot][(x - 4)];
+          uint8_t bit = 1 << (15 - y);
+          if ((bit & n) > 0) {
+            score_display[y][x] = 1;
+          } else {
+            score_display[y][x] = 0;
+          }
+        }
+      }
+    }
+    xSemaphoreGive(score_mutex);
   }
 }
 
@@ -166,8 +160,8 @@ void task_game_logic(void *args __attribute__((unused))) {
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
     }
-    int new_delay = 100-(score*5) ;
-    if(new_delay<20) {
+    int new_delay = 100 - (score * 5);
+    if (new_delay < 20) {
       new_delay = 20;
     }
     vTaskDelay(pdMS_TO_TICKS(new_delay));
@@ -208,4 +202,3 @@ int main(void) {
   while (1)
     ;
 }
-
