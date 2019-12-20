@@ -28,25 +28,23 @@ std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbe
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
   while (1) {
-    if (tetris.get_game_over_status() == 1 &&
-        (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE)) {
-      for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
-        for (size_t x = 0; x < PG_WIDTH; ++x) {
-          double_draw_dot(y, x, score_display[y][x],
-                          score_display[y + (PG_HEIGHT / 2)][x]);
-          __asm__("nop"); // wait for the pin status to take effect
+    if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
+      if (tetris.get_game_over_status()) {
+        for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
+          for (size_t x = 0; x < PG_WIDTH; ++x) {
+            double_draw_dot(y, x, score_display[y][x],
+                            score_display[y + (PG_HEIGHT / 2)][x]);
+            __asm__("nop"); // wait for the pin status to take effect
+          }
         }
-      }
-      // just clear display
-      draw_dot(0, 0, 0);
-      xSemaphoreGive(score_mutex);
-    } else if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
-      auto *playground = tetris.get_playground();
-      for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
-        for (size_t x = 0; x < PG_WIDTH; ++x) {
-          double_draw_dot(y, x, playground[x][y],
-                          playground[x][y + (PG_HEIGHT / 2)]);
-          __asm__("nop"); // wait for the pin status to take effect
+      } else {
+        auto *playground = tetris.get_playground();
+        for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
+          for (size_t x = 0; x < PG_WIDTH; ++x) {
+            double_draw_dot(y, x, playground[x][y],
+                            playground[x][y + (PG_HEIGHT / 2)]);
+            __asm__("nop"); // wait for the pin status to take effect
+          }
         }
       }
       // just clear display
