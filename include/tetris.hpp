@@ -225,8 +225,12 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
   }
 
 public:
+  // returns whether the gameover animation has ended
+  bool get_game_over_status() {
+    return this->status.ending &&
+           playground[0][0] == static_cast<uint8_t>(BLINK);
+  }
   // returns the game score
-  int get_game_over_status() { return this->status.ending; }
   int get_score() { return this->score; }
   // performs one game logic tick
   void tick() {
