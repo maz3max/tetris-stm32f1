@@ -1,8 +1,8 @@
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/flash.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstdlib>
 
@@ -12,26 +12,18 @@
 
 #include "buttons.hpp"
 #include "display.hpp"
+#include "flash_rw.hpp"
 #include "matrixFont.h"
 #include "tetris.hpp"
 
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
 
-#define SEND_BUFFER_SIZE 256
-#define FLASH_OPERATION_ADDRESS ((uint32_t)0x08010000)
-#define FLASH_PAGE_NUM_MAX 255
-#define FLASH_PAGE_SIZE 0x800
-#define FLASH_WRONG_DATA_WRITTEN 0x80
-#define RESULT_OK 0
-
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
-SemaphoreHandle_t score_mutex = NULL;
 std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed + also contains old button states
 std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
 std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbers as dotmatrix to display
-uint8_t highscore[4] = {0}; 
 
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
@@ -95,111 +87,52 @@ void task_check_buttons(void *args __attribute__((unused))) {
   }
 }
 
-
-static uint32_t flash_program_data(uint32_t start_address, uint8_t *input_data, uint16_t num_elements)
-{
-	uint16_t iter;
-	uint32_t current_address = start_address;
-	uint32_t page_address = start_address;
-	uint32_t flash_status = 0;
-
-	/*check if start_address is in proper range*/
-	if((start_address - FLASH_BASE) >= (FLASH_PAGE_SIZE * (FLASH_PAGE_NUM_MAX+1)))
-		return 1;
-
-	/*calculate current page address*/
-	if(start_address % FLASH_PAGE_SIZE)
-		page_address -= (start_address % FLASH_PAGE_SIZE);
-
-	flash_unlock();
-
-	/*Erasing page*/
-	flash_erase_page(page_address);
-	flash_status = flash_get_status_flags();
-	if(flash_status != FLASH_SR_EOP)
-		return flash_status;
-
-	/*programming flash memory*/
-	for(iter=0; iter<num_elements; iter += 4)
-	{
-		/*programming word data*/
-		flash_program_word(current_address+iter, *((uint32_t*)(input_data + iter)));
-		flash_status = flash_get_status_flags();
-		if(flash_status != FLASH_SR_EOP)
-			return flash_status;
-
-		/*verify if correct data is programmed*/
-		if(*((uint32_t*)(current_address+iter)) != *((uint32_t*)(input_data + iter)))
-			return FLASH_WRONG_DATA_WRITTEN;
-	}
-
-	return 0;
-}
-
-
-static void flash_read_data(uint32_t start_address, uint16_t num_elements, uint8_t *output_data)
-{
-	uint16_t iter;
-	uint32_t *memory_ptr= (uint32_t*)start_address;
-
-	for(iter=0; iter<num_elements/4; iter++)
-	{
-		*(uint32_t*)output_data = *(memory_ptr + iter);
-		output_data += 4;
-	}
-}
-
-
 void draw_number_field(int nmb_top, int nmb_bot) {
-  if (nmb_top > 99 || nmb_bot > 99) {
-    return;
-  }
+  nmb_top = std::min(99, nmb_top);
+  nmb_bot = std::min(99, nmb_bot);
   int a = nmb_top / 10;
   int b = nmb_top - (a * 10);
   int a_bot = nmb_bot / 10;
   int b_bot = nmb_bot - (a_bot * 10);
   uint8_t *numberarray[10] = {ze, on, tw, th, fo, fi, si, se, ei, ni};
-  if (xSemaphoreTake(score_mutex, (TickType_t)10) == pdTRUE) {
-    for (uint8_t y = 0; y < PG_HEIGHT; y++) {
-      for (uint8_t x = 0; x < PG_WIDTH; x++) {
-        if (x < 3 && y < 8) {
-          uint8_t n = numberarray[a][x];
-          uint8_t bit = 1 << (7 - y);
-          if ((bit & n) > 0) {
-            score_display[y][x] = 1;
-          } else {
-            score_display[y][x] = 0;
-          }
-          // draw_dot(y, x, 1);
-        } else if (x > 3 && x < 7 && y < 8) {
-          uint8_t n = numberarray[b][(x - 4)];
-          uint8_t bit = 1 << (7 - y);
-          if ((bit & n) > 0) {
-            score_display[y][x] = 1;
-          } else {
-            score_display[y][x] = 0;
-          }
-          // draw_dot(y, x, 1);
-        } else if (x < 3 && y > 7) {
-          uint8_t n = numberarray[a_bot][x];
-          uint8_t bit = 1 << (15 - y);
-          if ((bit & n) > 0) {
-            score_display[y][x] = 1;
-          } else {
-            score_display[y][x] = 0;
-          }
-        } else if (x > 3 && x < 7 && y > 7) {
-          uint8_t n = numberarray[b_bot][(x - 4)];
-          uint8_t bit = 1 << (15 - y);
-          if ((bit & n) > 0) {
-            score_display[y][x] = 1;
-          } else {
-            score_display[y][x] = 0;
-          }
+  for (uint8_t y = 0; y < PG_HEIGHT; y++) {
+    for (uint8_t x = 0; x < PG_WIDTH; x++) {
+      if (x < 3 && y < 8) {
+        uint8_t n = numberarray[a][x];
+        uint8_t bit = 1 << (7 - y);
+        if ((bit & n) > 0) {
+          score_display[y][x] = 1;
+        } else {
+          score_display[y][x] = 0;
+        }
+        // draw_dot(y, x, 1);
+      } else if (x > 3 && x < 7 && y < 8) {
+        uint8_t n = numberarray[b][(x - 4)];
+        uint8_t bit = 1 << (7 - y);
+        if ((bit & n) > 0) {
+          score_display[y][x] = 1;
+        } else {
+          score_display[y][x] = 0;
+        }
+        // draw_dot(y, x, 1);
+      } else if (x < 3 && y > 7) {
+        uint8_t n = numberarray[a_bot][x];
+        uint8_t bit = 1 << (15 - y);
+        if ((bit & n) > 0) {
+          score_display[y][x] = 1;
+        } else {
+          score_display[y][x] = 0;
+        }
+      } else if (x > 3 && x < 7 && y > 7) {
+        uint8_t n = numberarray[b_bot][(x - 4)];
+        uint8_t bit = 1 << (15 - y);
+        if ((bit & n) > 0) {
+          score_display[y][x] = 1;
+        } else {
+          score_display[y][x] = 0;
         }
       }
     }
-    xSemaphoreGive(score_mutex);
   }
 }
 
@@ -220,12 +153,11 @@ void task_game_logic(void *args __attribute__((unused))) {
       status.rotCCW = btn_flank_state[BTN_B];
 
       if (status.ending) {
-        flash_read_data(FLASH_OPERATION_ADDRESS, 4, highscore);
-        if(score > highscore[0]){
-          highscore[0] = score;
-          flash_program_data(FLASH_OPERATION_ADDRESS, highscore, 4);
+        uint8_t highscore = get_highscore();
+        if (score > highscore) {
+          set_highscore(score);
         }
-        draw_number_field(score, highscore[0]);
+        draw_number_field(score, highscore);
         status.reset = btn_flank_state[BTN_LEFT] ||
                        btn_flank_state[BTN_RIGHT] ||
                        btn_flank_state[BTN_DOWN] || btn_flank_state[BTN_A] ||
@@ -239,11 +171,9 @@ void task_game_logic(void *args __attribute__((unused))) {
       tetris.tick();
       xSemaphoreGive(game_data_mutex);
     }
-    int new_delay = 100 - (score * 5);
-    if (new_delay < 20) {
-      new_delay = 20;
-    }
-    vTaskDelay(pdMS_TO_TICKS(new_delay));
+    int delay = 100 - (score * 5);
+    delay = std::max(20, delay);
+    vTaskDelay(pdMS_TO_TICKS(delay));
   }
 }
 
@@ -262,10 +192,8 @@ int main(void) {
 
   // create mutex for game data
   game_data_mutex = xSemaphoreCreateMutex();
-  score_mutex = xSemaphoreCreateMutex();
 
   configASSERT(game_data_mutex);
-  configASSERT(score_mutex);
 
   // initialize IO
   display_init();

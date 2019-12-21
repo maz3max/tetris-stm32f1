@@ -21,6 +21,7 @@ add_executable(
   src/display.cpp
   src/buttons.cpp
   src/prng.cpp
+  src/flash_rw.cpp
 )
 add_dependencies(
   tetris.elf
