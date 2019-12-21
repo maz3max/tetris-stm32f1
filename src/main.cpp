@@ -157,6 +157,10 @@ void task_game_logic(void *args __attribute__((unused))) {
 
       if (status.ending) {
         uint8_t highscore = get_highscore();
+        if (highscore > 99) {
+          highscore = score;
+          set_highscore(score);
+        }
         if (score > highscore) {
           set_highscore(score);
         }
