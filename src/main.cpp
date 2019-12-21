@@ -14,6 +14,7 @@
 #include "display.hpp"
 #include "flash_rw.hpp"
 #include "matrixFont.h"
+#include "prng.hpp"
 #include "tetris.hpp"
 
 #define PG_HEIGHT 16 // playground height
@@ -194,6 +195,9 @@ int main(void) {
   game_data_mutex = xSemaphoreCreateMutex();
 
   configASSERT(game_data_mutex);
+
+  // collect entropy for the PRNG
+  prng_init();
 
   // initialize IO
   display_init();
