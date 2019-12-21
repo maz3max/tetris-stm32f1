@@ -1,3 +1,4 @@
 r
 loadfile tetris.bin 0x8000000
+r
 exit
