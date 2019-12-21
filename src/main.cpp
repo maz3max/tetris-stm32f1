@@ -150,6 +150,8 @@ void task_game_logic(void *args __attribute__((unused))) {
       status.left = btn_states[BTN_LEFT];
       status.right = btn_states[BTN_RIGHT];
       status.down = btn_states[BTN_DOWN];
+      status.left_flank = btn_flank_state[BTN_LEFT];
+      status.right_flank = btn_flank_state[BTN_RIGHT];
       status.rotCW = btn_flank_state[BTN_A];
       status.rotCCW = btn_flank_state[BTN_B];
 

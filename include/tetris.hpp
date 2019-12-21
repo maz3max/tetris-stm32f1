@@ -17,6 +17,8 @@ template <size_t WIDTH, size_t HEIGHT> struct Tetris {
     bool right : 1;
     bool down : 1;
     bool ending : 1;
+    bool left_flank : 1;
+    bool right_flank : 1;
 
   public:
     Status(bool init = false) {
@@ -266,12 +268,14 @@ public:
       this->status.rotCW = false;
       rotate(1);
     }
-    if (this->status.left) {
+    if ((this->timer % 2 && this->status.left) || this->status.left_flank) {
       this->status.left = false;
+      this->status.left_flank = false;
       move_x(-1);
     }
-    if (this->status.right) {
+    if ((this->timer % 2 && this->status.right) || this->status.right_flank) {
       this->status.right = false;
+      this->status.right_flank = false;
       move_x(1);
     }
     const bool slow_tick = this->timer > 4;
