@@ -2,7 +2,7 @@
 #define FREERTOS_CONFIG_H
 // https://www.freertos.org/a00110.html
 
-#define configUSE_PREEMPTION 1
+#define configUSE_PREEMPTION 0
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_TICKLESS_IDLE 0
 #define configCPU_CLOCK_HZ 64000000
