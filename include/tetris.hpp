@@ -274,6 +274,11 @@ public:
       this->timer = 0;
       remove_lines();
     }
+    if (this->status.left_flank || this->status.right_flank) {
+      this->ticks_until_autofire = 5;
+    } else {
+      this->ticks_until_autofire = std::max(this->ticks_until_autofire - 1, 0);
+    }
     if ((!this->ticks_until_autofire && this->status.left) ||
         this->status.left_flank) {
       this->status.left = false;
@@ -285,11 +290,6 @@ public:
       this->status.right = false;
       this->status.right_flank = false;
       move_x(1);
-    }
-    if (this->status.left_flank || this->status.right_flank) {
-      this->ticks_until_autofire = 6;
-    } else {
-      this->ticks_until_autofire = std::max(this->ticks_until_autofire - 1, 0);
     }
     if (slow_tick || this->status.down) {
       this->status.down = false;
