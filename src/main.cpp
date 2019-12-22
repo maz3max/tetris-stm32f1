@@ -47,8 +47,10 @@ std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbe
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
 void task_display_refresh(void *args __attribute__((unused))) {
+  uint8_t display_counter = 0;
   while (1) {
     if (xSemaphoreTake(game_data_mutex, (TickType_t)10) == pdTRUE) {
+      display_counter = (display_counter + 1) % 7;
       if (tetris.get_game_over_status()) {
         for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
           for (size_t x = 0; x < PG_WIDTH; ++x) {
@@ -61,8 +63,8 @@ void task_display_refresh(void *args __attribute__((unused))) {
         auto *playground = tetris.get_playground();
         for (size_t y = 0; y < PG_HEIGHT / 2; ++y) {
           for (size_t x = 0; x < PG_WIDTH; ++x) {
-            double_draw_dot(y, x, playground[x][y],
-                            playground[x][y + (PG_HEIGHT / 2)]);
+            double_draw_dot(y, x, playground[x][y] > display_counter,
+                            playground[x][y + (PG_HEIGHT / 2)] > display_counter);
             __asm__("nop"); // wait for the pin status to take effect
           }
         }
