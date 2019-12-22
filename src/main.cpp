@@ -17,8 +17,26 @@
 #include "prng.hpp"
 #include "tetris.hpp"
 
+#include <libopencm3/stm32/timer.h>
+
 #define PG_HEIGHT 16 // playground height
 #define PG_WIDTH 8   // playground width
+
+// define tone frequencys
+#define A2 1760 // 440
+#define G 1568  // 392
+#define F 1396  // 349
+#define E 1318  // 329
+#define D 1174  // 293
+#define C 1046  // 261
+#define H 987   // 246
+#define A 880   // 220
+#define N 40000 
+
+const int32_t TetrisMusic[64] = {
+    E, E, H, C, D, D, C, H, A, A, A, C, E, E, D,  C,  H, H, H, C, D, D,
+    E, E, C, C, A, A, A, A, N, N, D, D, D, F, A2, A2, G, F, E, E, E, C,
+    E, E, D, C, H, H, H, C, D, D, E, E, C, C, A,  A,  A, A, N, N};
 
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
@@ -184,6 +202,45 @@ void task_game_logic(void *args __attribute__((unused))) {
   }
 }
 
+void init_tetris_music() {
+  uint32_t my_sick_tone = (8000000 / 21000) / 2;
+
+  rcc_clock_setup_in_hsi_out_64mhz();
+  /* Enable TIM1 clock. */
+  rcc_periph_clock_enable(RCC_TIM2);
+
+  /* Enable GPIOC, Alternate Function clocks. */
+  rcc_periph_clock_enable(RCC_GPIOA);
+  rcc_periph_clock_enable(RCC_AFIO);
+
+  gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
+                GPIO_TIM2_CH3);
+
+  // gpio_set_output_options(GPIOA, GPIO_OTYPE_PP,
+  //                      GPIO_OSPEED_50MHZ, GPIO8 | GPIO9);
+  timer_set_mode(TIM2, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_CENTER_1,
+                 TIM_CR1_DIR_UP);
+  timer_set_oc_mode(TIM2, TIM_OC3, TIM_OCM_PWM2);
+  timer_enable_oc_output(TIM2, TIM_OC3);
+  timer_enable_break_main_output(TIM2);
+  timer_set_oc_value(TIM2, TIM_OC3, my_sick_tone);
+  timer_set_prescaler(TIM2, 4);
+  timer_set_period(TIM2, my_sick_tone * 2);
+  timer_enable_counter(TIM2);
+}
+
+void task_music_update(void *args __attribute__((unused))){
+  while (1) {
+    for (int i = 0; i < 64; i++) {
+      int my_sick_tone = (8000000 / TetrisMusic[i]) / 2;
+      // timer_enable_break_main_output(TIM2);
+      timer_set_period(TIM2, my_sick_tone * 2);
+      timer_set_oc_value(TIM2, TIM_OC3, my_sick_tone);
+      vTaskDelay(pdMS_TO_TICKS(200));
+    }
+  }
+}
+
 int main(void) {
   // use the HSI clock and PLL to reach 64 MHz
   rcc_clock_setup_in_hsi_out_64mhz();
@@ -208,11 +265,13 @@ int main(void) {
   // initialize IO
   display_init();
   btn_init();
+  init_tetris_music();
 
   // add tasks and start scheduler
   xTaskCreate(task_display_refresh, "display", 100, NULL, 1, NULL);
   xTaskCreate(task_check_buttons, "buttons", 100, NULL, 1, NULL);
   xTaskCreate(task_game_logic, "game", 100, NULL, 2, NULL);
+  xTaskCreate(task_music_update, "music", 100, NULL, 3, NULL);
   vTaskStartScheduler();
 
   // this should never be reached
