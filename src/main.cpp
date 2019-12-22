@@ -31,7 +31,7 @@
 #define C 1046  // 261
 #define H 987   // 246
 #define A 880   // 220
-#define N 40000 
+#define N 40000
 
 const int32_t TetrisMusic[64] = {
     E, E, H, C, D, D, C, H, A, A, A, C, E, E, D,  C,  H, H, H, C, D, D,
@@ -231,7 +231,7 @@ void init_tetris_music() {
   timer_enable_counter(TIM2);
 }
 
-void task_music_update(void *args __attribute__((unused))){
+void task_music_update(void *args __attribute__((unused))) {
   while (1) {
     for (int i = 0; i < 64; i++) {
       int my_sick_tone = (8000000 / TetrisMusic[i]) / 2;
