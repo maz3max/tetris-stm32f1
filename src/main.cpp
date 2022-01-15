@@ -40,9 +40,9 @@ const int32_t TetrisMusic[64] = {
 
 Tetris<PG_WIDTH, PG_HEIGHT> tetris;       // game logic object
 SemaphoreHandle_t game_data_mutex = NULL; // mutex for accessing above object
-std::atomic<bool> btn_states[NUM_BTNS] = {0}; // true if buttons are pressed + also contains old button states
-std::atomic<bool> btn_flank_state[NUM_BTNS] = {0}; // contains rising edge button states
-std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH] = {0}; //contains the numbers as dotmatrix to display
+std::atomic<bool> btn_states[NUM_BTNS]; // true if buttons are pressed + also contains old button states
+std::atomic<bool> btn_flank_state[NUM_BTNS]; // contains rising edge button states
+std::atomic<bool> score_display[PG_HEIGHT][PG_WIDTH]; //contains the numbers as dotmatrix to display
 
 // this task has to run very regularly to cycle between all the display dots
 // it will only run if the game object is not in use (mutex)
@@ -207,7 +207,6 @@ void task_game_logic(void *args __attribute__((unused))) {
 void init_tetris_music() {
   uint32_t my_sick_tone = (8000000 / 21000) / 2;
 
-  rcc_clock_setup_in_hsi_out_64mhz();
   /* Enable TIM1 clock. */
   rcc_periph_clock_enable(RCC_TIM2);
 
@@ -245,7 +244,7 @@ void task_music_update(void *args __attribute__((unused))) {
 
 int main(void) {
   // use the HSI clock and PLL to reach 64 MHz
-  rcc_clock_setup_in_hsi_out_64mhz();
+  rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_64MHZ]);
 
   // specify grouping of interrupt priorities (what part of the 8 bits is
   // allocated to index and subindex),  we use no subindex
